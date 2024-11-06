@@ -30,6 +30,10 @@ private:
 
 	Light* light;
 	AModel* model;
+
+	CubeMesh* cubeMesh;
+	SphereMesh* sphereMesh;
+
 	ShadowShader* shadowShader;
 	DepthShader* depthShader;
 

@@ -22,6 +22,9 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	depthShader = new DepthShader(renderer->getDevice(), hwnd);
 	shadowShader = new ShadowShader(renderer->getDevice(), hwnd);
 
+	sphereMesh = new SphereMesh(renderer->getDevice(), renderer->getDeviceContext());
+	cubeMesh = new CubeMesh(renderer->getDevice(), renderer->getDeviceContext());
+
 	// Variables for defining shadow map
 	int shadowmapWidth = 1024;
 	int shadowmapHeight = 1024;
@@ -108,6 +111,20 @@ void App1::depthPass()
 	depthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix);
 	depthShader->render(renderer->getDeviceContext(), model->getIndexCount());
 
+	worldMatrix = renderer->getWorldMatrix();
+	worldMatrix = XMMatrixTranslation(10.0f, 7.0f, 5.0f);
+
+	cubeMesh->sendData(renderer->getDeviceContext());
+	depthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix);
+	depthShader->render(renderer->getDeviceContext(), model->getIndexCount());
+
+	worldMatrix = renderer->getWorldMatrix();
+	worldMatrix = XMMatrixTranslation(-10.0f, 7.0f, 5.0f);
+
+	sphereMesh->sendData(renderer->getDeviceContext());
+	depthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix);
+	depthShader->render(renderer->getDeviceContext(), model->getIndexCount());
+
 	// Set back buffer as render target and reset view port.
 	renderer->setBackBufferRenderTarget();
 	renderer->resetViewport();
@@ -139,6 +156,20 @@ void App1::finalPass()
 	model->sendData(renderer->getDeviceContext());
 	shadowShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture(L"brick"), shadowMap->getDepthMapSRV(), light);
 	shadowShader->render(renderer->getDeviceContext(), model->getIndexCount());
+
+	worldMatrix = renderer->getWorldMatrix();
+	worldMatrix = XMMatrixTranslation(10.0f, 7.0f, 5.0f);
+
+	cubeMesh->sendData(renderer->getDeviceContext());
+	shadowShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture(L"brick"), shadowMap->getDepthMapSRV(), light);
+	shadowShader->render(renderer->getDeviceContext(), cubeMesh->getIndexCount());
+
+	worldMatrix = renderer->getWorldMatrix();
+	worldMatrix = XMMatrixTranslation(-10.0f, 7.0f, 5.0f);
+
+	sphereMesh->sendData(renderer->getDeviceContext());
+	shadowShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture(L"brick"), shadowMap->getDepthMapSRV(), light);
+	shadowShader->render(renderer->getDeviceContext(), sphereMesh->getIndexCount());
 
 	gui();
 	renderer->endScene();
