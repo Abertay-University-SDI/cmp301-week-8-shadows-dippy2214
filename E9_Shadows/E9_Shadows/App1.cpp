@@ -41,6 +41,9 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light->setDirection(0.0f, -0.7f, 0.7f);
 	light->setPosition(0.f, 0.f, -10.f);
 	light->generateOrthoMatrix((float)sceneWidth, (float)sceneHeight, 0.1f, 100.f);
+	//light->generateProjectionMatrix(0.1f, 100.f);
+
+	//lightAngle = 0.0f;
 
 }
 
@@ -57,7 +60,7 @@ App1::~App1()
 bool App1::frame()
 {
 	bool result;
-
+	angle += 0.05f;
 	result = BaseApplication::frame();
 	if (!result)
 	{
@@ -72,6 +75,7 @@ bool App1::frame()
 	}
 
 	return true;
+	
 }
 
 bool App1::render()
@@ -106,6 +110,8 @@ void App1::depthPass()
 	worldMatrix = XMMatrixTranslation(0.f, 7.f, 5.f);
 	XMMATRIX scaleMatrix = XMMatrixScaling(0.5f, 0.5f, 0.5f);
 	worldMatrix = XMMatrixMultiply(worldMatrix, scaleMatrix);
+	XMMATRIX rotateMatrix = XMMatrixRotationY(angle);
+	worldMatrix = XMMatrixMultiply(worldMatrix, rotateMatrix);
 	// Render model
 	model->sendData(renderer->getDeviceContext());
 	depthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix);
@@ -142,6 +148,8 @@ void App1::finalPass()
 	XMMATRIX projectionMatrix = renderer->getProjectionMatrix();
 
 	worldMatrix = XMMatrixTranslation(-50.f, 0.f, -10.f);
+	
+
 	// Render floor
 	mesh->sendData(renderer->getDeviceContext());
 	shadowShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, 
@@ -153,6 +161,8 @@ void App1::finalPass()
 	worldMatrix = XMMatrixTranslation(0.f, 7.f, 5.f);
 	XMMATRIX scaleMatrix = XMMatrixScaling(0.5f, 0.5f, 0.5f);
 	worldMatrix = XMMatrixMultiply(worldMatrix, scaleMatrix);
+	XMMATRIX rotateMatrix = XMMatrixRotationY(angle);
+	worldMatrix = XMMatrixMultiply(worldMatrix, rotateMatrix);
 	model->sendData(renderer->getDeviceContext());
 	shadowShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture(L"brick"), shadowMap->getDepthMapSRV(), light);
 	shadowShader->render(renderer->getDeviceContext(), model->getIndexCount());
@@ -187,6 +197,12 @@ void App1::gui()
 	// Build UI
 	ImGui::Text("FPS: %.2f", timer->getFPS());
 	ImGui::Checkbox("Wireframe mode", &wireframeToggle);
+
+	
+	static float lightAngle[3] = {light->getDirection().x, light->getDirection().y, light->getDirection().z};
+	ImGui::SliderFloat3("light angle x", lightAngle, -1.0f, 1.0f);
+	light->setDirection(lightAngle[0], lightAngle[1], lightAngle[2]);
+
 
 	// Render UI
 	ImGui::Render();

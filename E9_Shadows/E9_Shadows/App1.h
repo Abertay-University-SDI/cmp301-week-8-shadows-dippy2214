@@ -34,10 +34,15 @@ private:
 	CubeMesh* cubeMesh;
 	SphereMesh* sphereMesh;
 
+	float angle = 0.0f;
+
 	ShadowShader* shadowShader;
 	DepthShader* depthShader;
 
 	ShadowMap* shadowMap;
+
+
+	//XMFLOAT4 lightPos;
 };
 
 #endif
